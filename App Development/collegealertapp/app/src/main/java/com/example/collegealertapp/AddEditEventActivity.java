@@ -1,5 +1,7 @@
 package com.example.collegealertapp;
 
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.format.DateUtils;
@@ -8,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.collegealertapp.databinding.ActivityAddEditEventBinding;
 
+import java.util.Calendar;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -16,7 +19,8 @@ public class AddEditEventActivity extends AppCompatActivity {
     public static final String EXTRA_TITLE = "event_title";
     public static final String EXTRA_DESC  = "event_desc";
     public static final String EXTRA_TIME  = "event_time";
-    ActivityAddEditEventBinding binding;
+
+    private ActivityAddEditEventBinding binding;
     private DBHelper db;
     private final ExecutorService exec = Executors.newSingleThreadExecutor();
     private boolean isEdit = false;
@@ -26,14 +30,12 @@ public class AddEditEventActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding =
-                ActivityAddEditEventBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
+        binding = ActivityAddEditEventBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         db = new DBHelper(this);
 
+        // 1) Detect edit vs. add
         Intent in = getIntent();
         if (in.hasExtra(EXTRA_ID)) {
             isEdit = true;
@@ -56,8 +58,13 @@ public class AddEditEventActivity extends AppCompatActivity {
             });
         }
 
+        // 2) Wire up date/time picker
+        binding.etDateTime.setFocusable(false);
+        binding.etDateTime.setClickable(true);
         binding.etDateTime.setOnClickListener(v -> showDateTimePicker());
-        binding.btnSave   .setOnClickListener(v -> saveAndFinish());
+
+        // 3) Save
+        binding.btnSave.setOnClickListener(v -> saveAndFinish());
     }
 
     private void saveAndFinish() {
@@ -89,8 +96,47 @@ public class AddEditEventActivity extends AppCompatActivity {
     }
 
     private void showDateTimePicker() {
-        // your DatePicker → TimePicker flow here,
-        // setting `selectedTimeMs` & `binding.etDateTime`
+        // Use a Calendar so we can read/write both date & time in ms
+        Calendar cal = Calendar.getInstance();
+        if (selectedTimeMs > 0) {
+            cal.setTimeInMillis(selectedTimeMs);
+        }
+
+        // 1) DatePicker
+        new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> {
+                    cal.set(Calendar.YEAR,  year);
+                    cal.set(Calendar.MONTH, month);
+                    cal.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+                    // 2) TimePicker
+                    new TimePickerDialog(
+                            this,
+                            (timeView, hourOfDay, minute) -> {
+                                cal.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                                cal.set(Calendar.MINUTE,      minute);
+                                cal.set(Calendar.SECOND,      0);
+
+                                // Save & display
+                                selectedTimeMs = cal.getTimeInMillis();
+                                binding.etDateTime.setText(
+                                        DateUtils.formatDateTime(
+                                                this,
+                                                selectedTimeMs,
+                                                DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME
+                                        )
+                                );
+                            },
+                            cal.get(Calendar.HOUR_OF_DAY),
+                            cal.get(Calendar.MINUTE),
+                            true
+                    ).show();
+                },
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH)
+        ).show();
     }
 
     @Override
