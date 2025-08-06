@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "852969881887",
+    "project_id": "collegealertapp-ea67b",
+    "storage_bucket": "collegealertapp-ea67b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:852969881887:android:0cf29ac5803848a89d302a",
+        "android_client_info": {
+          "package_name": "com.example.collegealertapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzPh9Uzza29aJMPTg0Yrye6LGQO7PWQgY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
